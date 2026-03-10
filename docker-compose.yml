@@ -1,0 +1,16 @@
+services:
+  code-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: code-agent:latest
+    ports:
+      - "${CODE_AGENT_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      CODE_AGENT_PORT: 3000
+      CODE_AGENT_WORKSPACE: /workspace
+    volumes:
+      - .:/workspace
+    restart: unless-stopped
