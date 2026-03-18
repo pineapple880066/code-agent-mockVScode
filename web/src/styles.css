@@ -100,12 +100,15 @@ textarea {
   display: grid;
   grid-template-columns: minmax(250px, 0.9fr) minmax(460px, 1.4fr) minmax(320px, 1fr);
   gap: 18px;
+  height: calc(100vh - 150px);
   min-height: calc(100vh - 150px);
+  align-items: stretch;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
   border: 1px solid var(--border);
   border-radius: 28px;
@@ -274,7 +277,18 @@ pre {
 }
 
 .chat-panel {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  overflow: hidden;
+}
+
+.chat-frame {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .activity-list {
@@ -282,6 +296,8 @@ pre {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px 0;
+  flex: 0 0 auto;
+  overflow: auto;
 }
 
 .activity-pill {
@@ -301,11 +317,16 @@ pre {
 }
 
 .chat-history {
+  min-height: 0;
+  height: 0;
   flex: 1;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
 }
 
 .message {
@@ -345,6 +366,7 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .composer-input {
@@ -355,6 +377,7 @@ pre {
 @media (max-width: 1100px) {
   .workspace-grid {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .panel {

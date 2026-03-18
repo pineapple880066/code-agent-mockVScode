@@ -1,5 +1,5 @@
 import Editor from "@monaco-editor/react";
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { startTransition, useDeferredValue, useEffect, useRef, useState } from "react";
 
 import { getConfig, getDirectory, getFile, getIndexStatus, getSearchResults, getSession, rebuildIndex, saveFile, streamAgent } from "./api";
 import type { AppConfig, DirectoryEntry, SearchResult, SessionMessage } from "./types";
@@ -12,6 +12,8 @@ type ActivityItem =
   | { kind: "tool_end"; text: string };
 
 export function App() {
+  const chatHistoryRef = useRef<HTMLDivElement | null>(null);
+  const shouldStickChatToBottomRef = useRef(true);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [currentPath, setCurrentPath] = useState(".");
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
@@ -28,6 +30,28 @@ export function App() {
   const [error, setError] = useState("");
 
   const deferredSearch = useDeferredValue(searchInput);
+
+  function scrollChatToBottom(behavior: ScrollBehavior = "auto") {
+    const container = chatHistoryRef.current;
+    if (!container) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior,
+    });
+  }
+
+  function updateChatStickiness() {
+    const container = chatHistoryRef.current;
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldStickChatToBottomRef.current = distanceFromBottom < 48;
+  }
 
   async function loadDirectory(targetPath: string) {
     const payload = await getDirectory(targetPath);
@@ -56,6 +80,24 @@ export function App() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (!chatHistoryRef.current) {
+      return;
+    }
+
+    if (!shouldStickChatToBottomRef.current) {
+      return;
+    }
+
+    const rafId = window.requestAnimationFrame(() => {
+      scrollChatToBottom();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [sessionMessages]);
 
   useEffect(() => {
     if (!deferredSearch.trim()) {
@@ -305,21 +347,27 @@ export function App() {
             </div>
           </div>
 
-          <div className="activity-list">
-            {activity.map((item, index) => (
-              <div key={`${item.kind}-${index}`} className={`activity-pill activity-${item.kind}`}>
-                {item.text}
-              </div>
-            ))}
-          </div>
+          <div className="chat-frame">
+            <div className="activity-list">
+              {activity.map((item, index) => (
+                <div key={`${item.kind}-${index}`} className={`activity-pill activity-${item.kind}`}>
+                  {item.text}
+                </div>
+              ))}
+            </div>
 
-          <div className="chat-history">
-            {sessionMessages.map((message, index) => (
-              <article key={`${message.role}-${index}`} className={`message message-${message.role}`}>
-                <div className="message-role">{message.role}</div>
-                <pre>{message.content}</pre>
-              </article>
-            ))}
+            <div
+              ref={chatHistoryRef}
+              className="chat-history"
+              onScroll={updateChatStickiness}
+            >
+              {sessionMessages.map((message, index) => (
+                <article key={`${message.role}-${index}`} className={`message message-${message.role}`}>
+                  <div className="message-role">{message.role}</div>
+                  <pre>{message.content}</pre>
+                </article>
+              ))}
+            </div>
           </div>
 
           <div className="composer">
