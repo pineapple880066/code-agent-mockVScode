@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A mobile-friendly coding agent you can open over the network and use from your phone to inspect, edit, and let AI write code.",
+  "description": "一个适合手机联网使用的 AI 写代码工具 / A mobile-friendly coding agent you can open on your phone to inspect, edit, run checks, and let AI write code.",
   "bin": {
     "code-agent": "./dist/index.js"
   },
